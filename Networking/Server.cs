@@ -28,13 +28,30 @@ public static class Server
         TcpListener listner = new TcpListener(IPAddress.Any, port);
         listner.Start();
 
-        while (true)
+        // try to start the server
+        try
         {
-            TcpClient client = listner.AcceptTcpClient();
-            Console.WriteLine("Client connected");
-            clients.Add("client" + clientCount, client);
-            new Thread(() => handleConnect(new NetworkConnection(client))).Start();
-            clientCount++;
+            while (true)
+            {
+                TcpClient client = listner.AcceptTcpClient();
+                Console.WriteLine("Client connected");
+                new Thread(() => handleConnect(new NetworkConnection(client))).Start();
+
+                // THESE SHOULD PROBABLY BE IN ChatServer NOT Server -----------------------------
+                //clients.Add("client" + clientCount, client);
+                //clientCount++;
+            }
+        }
+        // handle any errors that occur while starting the server
+        catch (Exception e)
+        {
+            Console.WriteLine("An error was encountered while trying to start the server: " + e.Message);
+        }
+        // always close the listener
+        finally
+        {
+            listner.Stop();
+            Console.WriteLine("Listener stopped"); // FOR DEBUGGING -----------------------------
         }
     }
 }
