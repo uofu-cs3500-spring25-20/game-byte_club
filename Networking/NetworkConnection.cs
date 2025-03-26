@@ -65,11 +65,12 @@ public sealed class NetworkConnection : IDisposable
     {
         get
         {
+            // try to see if the client is connected, return true if yes and false if not
             try
             {
                 return _tcpClient.Connected;
             }
-            
+            // an error occurred with the connection, return false
             catch(Exception e)
             {
                 return false;
@@ -85,6 +86,7 @@ public sealed class NetworkConnection : IDisposable
     /// <param name="port"> The port, e.g., 11000. </param>
     public void Connect(string host, int port)
     {
+        // try to connect a client to the server
         try
         {
             _tcpClient = new TcpClient();
@@ -92,6 +94,7 @@ public sealed class NetworkConnection : IDisposable
             _reader = new StreamReader(_tcpClient.GetStream(), Encoding.UTF8);
             _writer = new StreamWriter(_tcpClient.GetStream(), Encoding.UTF8) { AutoFlush = true }; // AutoFlush ensures data is sent immediately
         }
+        // an error occurred while connecting to the server, display the error message
         catch (Exception e)
         {
             Console.WriteLine(e.Message);
@@ -110,11 +113,16 @@ public sealed class NetworkConnection : IDisposable
     /// <param name="message"> The string of characters to send. </param>
     public void Send( string message )
     {
+        // network is not connected
         if (!IsConnected)
         {
-            throw new InvalidOperationException();
+            throw new InvalidOperationException("Network is not connected");
         }
-        else _writer.WriteLine(message);
+        
+        // SHOULD WE MAKE A NULL MESSAGE AN EMPTY STRING ????????????????????????????????????????????????????? or is it fine???
+        _writer?.WriteLine(message);
+        // ensure all data is immediately sent
+        _writer?.Flush();
     }
 
 
@@ -125,17 +133,16 @@ public sealed class NetworkConnection : IDisposable
     ///   connected), throw an InvalidOperationException.
     /// </summary>
     /// <returns> The contents of the message. </returns>
-    public string ReadLine( )
+    public string ReadLine()
     {
-        if(!IsConnected)
+        // network is not connected
+        if (!IsConnected)
         {
-            throw new InvalidOperationException();
+            throw new InvalidOperationException("Network is not connected");
         }
-        else
-        {
-            string message = _reader.ReadLine();
-            return message;
-        }
+
+        // network is connected, return ReadLine() if not null, else return empty string
+        return _reader?.ReadLine() ?? string.Empty;
     }
 
     /// <summary>
@@ -147,9 +154,8 @@ public sealed class NetworkConnection : IDisposable
         if(IsConnected)
         {
             _tcpClient.Close();
-            _writer.Dispose();
-            _reader.Dispose();
-
+            _writer?.Dispose();
+            _reader?.Dispose();
         }
     }
 
