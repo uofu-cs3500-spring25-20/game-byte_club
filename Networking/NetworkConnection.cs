@@ -97,7 +97,7 @@ public sealed class NetworkConnection : IDisposable
         // an error occurred while connecting to the server, display the error message
         catch (Exception e)
         {
-            Console.WriteLine(e.Message);
+            Console.WriteLine("An error occurred while trying to connect: " + e.Message);
         }
     }
 

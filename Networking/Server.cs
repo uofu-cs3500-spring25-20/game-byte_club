@@ -34,12 +34,8 @@ public static class Server
             while (true)
             {
                 TcpClient client = listner.AcceptTcpClient();
-                Console.WriteLine("Client connected");
+                Console.WriteLine("Client connected"); // FOR DEBUGGING ---------------------------
                 new Thread(() => handleConnect(new NetworkConnection(client))).Start();
-
-                // THESE SHOULD PROBABLY BE IN ChatServer NOT Server -----------------------------
-                //clients.Add("client" + clientCount, client);
-                //clientCount++;
             }
         }
         // handle any errors that occur while starting the server
