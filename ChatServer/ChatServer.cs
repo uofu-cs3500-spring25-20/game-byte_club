@@ -84,7 +84,7 @@ public partial class ChatServer
                 message = connection.ReadLine();
                 foreach (NetworkConnection c in clients.Keys)
                 {
-                    c.Send(message);
+                    c.Send(clientName + ": " + message);
                 }
             }
         }
@@ -98,6 +98,7 @@ public partial class ChatServer
             {
                 c.Send(name + " has disconnected.");
             }
+            connection.Dispose();
 
             lock (clients)
             { // CHECK THAT THIS IS THE RIGHT LOCK ---------------------

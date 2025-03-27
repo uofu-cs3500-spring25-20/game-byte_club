@@ -136,13 +136,14 @@ public sealed class NetworkConnection : IDisposable
     public string ReadLine()
     {
         // network is not connected
-        if (!IsConnected)
+        if (IsConnected)
         {
-            throw new InvalidOperationException("Network is not connected");
+            // network is connected, return ReadLine() if not null, else return empty string
+            return _reader?.ReadLine() ?? string.Empty;
         }
 
-        // network is connected, return ReadLine() if not null, else return empty string
-        return _reader?.ReadLine() ?? string.Empty;
+        // network is not connected
+        throw new InvalidOperationException("Network is not connected");
     }
 
     /// <summary>
