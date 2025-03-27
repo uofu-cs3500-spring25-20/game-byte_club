@@ -34,7 +34,6 @@ public static class Server
             while (true)
             {
                 TcpClient client = listner.AcceptTcpClient();
-                Console.WriteLine("Client connected"); // FOR DEBUGGING ---------------------------
                 new Thread(() => handleConnect(new NetworkConnection(client))).Start();
             }
         }
@@ -47,7 +46,6 @@ public static class Server
         finally
         {
             listner.Stop();
-            Console.WriteLine("Listener stopped"); // FOR DEBUGGING -----------------------------
         }
     }
 }

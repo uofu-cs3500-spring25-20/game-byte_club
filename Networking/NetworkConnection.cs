@@ -71,7 +71,7 @@ public sealed class NetworkConnection : IDisposable
                 return _tcpClient.Connected;
             }
             // an error occurred with the connection, return false
-            catch(Exception e)
+            catch(Exception)
             {
                 return false;
             }
@@ -113,16 +113,14 @@ public sealed class NetworkConnection : IDisposable
     /// <param name="message"> The string of characters to send. </param>
     public void Send( string message )
     {
-        // network is not connected
+        // the network is not connected
         if (!IsConnected)
         {
             throw new InvalidOperationException("Network is not connected");
         }
         
-        // SHOULD WE MAKE A NULL MESSAGE AN EMPTY STRING or is it fine -----------------------------------
         _writer?.WriteLine(message);
-        // ensure all data is immediately sent
-        _writer?.Flush();
+        _writer?.Flush(); // ensure all data is immediately sent
     }
 
 
@@ -135,14 +133,14 @@ public sealed class NetworkConnection : IDisposable
     /// <returns> The contents of the message. </returns>
     public string ReadLine()
     {
-        // network is not connected
+        // the network is not connected
         if (IsConnected)
         {
-            // network is connected, return ReadLine() if not null, else return empty string
+            // the network is connected, return ReadLine() if not null, else return empty string
             return _reader?.ReadLine() ?? string.Empty;
         }
 
-        // network is not connected
+        // the network is not connected
         throw new InvalidOperationException("Network is not connected");
     }
 

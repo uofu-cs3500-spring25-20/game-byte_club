@@ -15,8 +15,7 @@ namespace CS3500.Chatting;
 /// </summary>
 public partial class ChatServer
 {
-    private static Dictionary<NetworkConnection, string> clients = new Dictionary<NetworkConnection, string>(); //--------------------------------
-    private static int clientCount = 0; // MADE STATIC ---------------
+    private static Dictionary<NetworkConnection, string> clients = new Dictionary<NetworkConnection, string>();
 
     /// <summary>
     ///   The main program.
@@ -61,8 +60,9 @@ public partial class ChatServer
                         // if the are no other clients with that name in the server, add them to the dictionary
                         if (!clients.ContainsValue(clientName))
                         {
+                            // use lock to eliminate race conditions
                             lock (clients)
-                            { // CHECK THAT THIS IS THE RIGHT LOCK ---------------------
+                            { 
                                 clients.Add(connection, clientName);
                                 IsInDictionary = true;
                             }
@@ -77,7 +77,6 @@ public partial class ChatServer
                         // the name the clent chose is already taken, prompt them to choose a different name
                         else connection.Send("Name already taken, please enter a different name: ");
                     }
-
                     // read the message from the client and send it to all other clients
                     message = connection.ReadLine();
                     foreach (NetworkConnection c in clients.Keys)
@@ -85,20 +84,21 @@ public partial class ChatServer
                         c.Send(clientName + ": " + message);
                     }
                 }
-
-
+                // the client has disconnected, handle it in the catch block
                 else throw new InvalidOperationException();
             }
         }
         catch (Exception)
         {
+            // get the name of the disconnecting client and remove them from the dictionary
             string name = clients[connection];
-            // do anything necessary to handle a disconnected client in here
+
+            // use a lock to eliminate race conditions
             lock (clients)
-            { // CHECK THAT THIS IS THE RIGHT LOCK ---------------------
+            { 
                 clients.Remove(connection);
-                clientCount--;
             }
+
             //remove the client from the dictionary and send a message to all other clients that they have disconnected
             foreach (NetworkConnection c in clients.Keys)
             {
