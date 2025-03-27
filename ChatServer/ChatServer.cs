@@ -3,6 +3,7 @@
 // </copyright>
 
 using CS3500.Networking;
+using System.ComponentModel.Design;
 using System.IO.Pipes;
 using System.Net.Sockets;
 using System.Text;
@@ -37,7 +38,7 @@ public partial class ChatServer
     /// </summary>
     ///
     private static void HandleConnect(NetworkConnection connection)
-    { 
+    {
         // handle all messages until disconnect.
         try
         {
@@ -49,61 +50,59 @@ public partial class ChatServer
             while (true)
             {
                 // check if there is a connection, if there's not, handle it in catch block
-                if (!connection.IsConnected)
+                if (connection.IsConnected)
                 {
-                    throw new InvalidOperationException();
-                }
-
-                // check if the client is in the dictionary, if not, add them
-                while (!IsInDictionary)
-                {
-                    // prompt the client for their name
-                    connection.Send("Enter your name");
-                    clientName = connection.ReadLine();
-                    // if the are no other clients with that name in the server, add them to the dictionary
-                    if(!clients.ContainsValue(clientName))
+                    // check if the client is in the dictionary, if not, add them
+                    while (!IsInDictionary)
                     {
-                        lock (clients)
-                        { // CHECK THAT THIS IS THE RIGHT LOCK ---------------------
-                            clients.Add(connection, clientName);
-                            IsInDictionary = true;
-                        }
-
-                        // send a message to all clients that the new client has joined
-                        message = clientName + " has joined the chat";
-                        foreach (NetworkConnection c in clients.Keys)
+                        // prompt the client for their name
+                        connection.Send("Enter your name");
+                        clientName = connection.ReadLine();
+                        // if the are no other clients with that name in the server, add them to the dictionary
+                        if (!clients.ContainsValue(clientName))
                         {
-                            c.Send(message);
+                            lock (clients)
+                            { // CHECK THAT THIS IS THE RIGHT LOCK ---------------------
+                                clients.Add(connection, clientName);
+                                IsInDictionary = true;
+                            }
+
+                            // send a message to all clients that the new client has joined
+                            message = clientName + " has joined the chat";
+                            foreach (NetworkConnection c in clients.Keys)
+                            {
+                                c.Send(message);
+                            }
                         }
+                        // the name the clent chose is already taken, prompt them to choose a different name
+                        else connection.Send("Name already taken, please enter a different name: ");
                     }
-                    // the name the clent chose is already taken, prompt them to choose a different name
-                    else connection.Send("Name already taken, please enter a different name: ");
+
+                    // read the message from the client and send it to all other clients
+                    message = connection.ReadLine();
+                    foreach (NetworkConnection c in clients.Keys)
+                    {
+                        c.Send(clientName + ": " + message);
+                    }
                 }
 
-                // read the message from the client and send it to all other clients
-                message = connection.ReadLine();
-                foreach (NetworkConnection c in clients.Keys)
-                {
-                    c.Send(clientName + ": " + message);
-                }
+
+                else throw new InvalidOperationException();
             }
         }
-        catch (InvalidOperationException e)
+        catch (Exception)
         {
-            // do anything necessary to handle a disconnected client in here
-
-            //remove the client from the dictionary and send a message to all other clients that they have disconnected
             string name = clients[connection];
-            foreach (NetworkConnection c in clients.Keys)
-            {
-                c.Send(name + " has disconnected.");
-            }
-            connection.Dispose();
-
+            // do anything necessary to handle a disconnected client in here
             lock (clients)
             { // CHECK THAT THIS IS THE RIGHT LOCK ---------------------
                 clients.Remove(connection);
                 clientCount--;
+            }
+            //remove the client from the dictionary and send a message to all other clients that they have disconnected
+            foreach (NetworkConnection c in clients.Keys)
+            {
+                c.Send(name + " has disconnected.");
             }
         }
     }
